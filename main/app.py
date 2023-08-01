@@ -19,6 +19,10 @@ def create_app():
 
     from application.post.route import post as post_bp
     app.register_blueprint(post_bp)
+
+    from application.car.route import car as car_bp
+    app.register_blueprint(car_bp)
+    
     db.init_app(app)
     with app.app_context():    
         try:

@@ -6,7 +6,7 @@ import sys
 sys.path.append("..")
 from application.model_extension import db
 from werkzeug.security import generate_password_hash
-from application.auth.auth import encode_auth_token
+from application.auth.auth import decode_auth_token, encode_auth_token
 user=Blueprint(
     'user', __name__, static_folder='static', url_prefix='/user'
     )
@@ -52,3 +52,15 @@ def login():
     else:
         # Invalid username or password
         return jsonify({'message': 'Invalid credentials'}), 401
+
+
+###Deleting a user###
+@user.route('/delete', methods = ['DELETE'])
+def delete_post():
+    auth_token = request.headers.get('Authorization') #Retrieving the token of the user
+    print(auth_token)
+    if not auth_token:
+        return jsonify({'message': 'Missing authorization token'}), 401
+    user_id = decode_auth_token(auth_token) #The user id is obtained after decoding the token
+    username = request.json.get('username') #The username is going to be verified before deleting the user
+    password = request.json.get('password') #The password is also verified before deleting the user.

@@ -61,7 +61,12 @@ def get_posts_for_make():
         return jsonify({'message': user_id}), 401
     #Retrieving the car from the user
     make = request.json.get('make')
-    posts = Post.query.filter_by(forum = make).all() #I HAVE TO ADD make TO THE TABLE OR FORUM
+    posts = Post.query.filter_by(forum = make).all()
+    #updating the time of the user last activity
+    user = db.session.get(User, int(user_id))
+    user.updateLastActive()
+    db.session.commit() #Commiting the changes
+    auth_token = update_token(auth_token)
     return jsonify({'auth_token': str(auth_token),'posts':[post.serialize() for post in posts]})
 
 ### Getting a list of posts depending from the user id###
@@ -79,6 +84,10 @@ def get_posts_for_user():
         return jsonify({'message': user_id}), 401
     #Getting a list of posts made by the user
     posts = Post.query.filter_by(user_id=user_id).all()
+    #updating the time of the user last activity
+    user = db.session.get(User, int(user_id))
+    user.updateLastActive()
+    db.session.commit() #Commiting the changes
     auth_token = update_token(auth_token)
     return jsonify({'auth_token': str(auth_token), 'posts':[post.serialize() for post in posts]})
 
@@ -101,6 +110,10 @@ def delete_post():
     if(session_user_id == post_user_id): #The user id is obtained after decoding the token. Verify if the owner is the one deleting the post
         db.session.delete(post)
         db.session.commit()
+        ###Updating the time of the user activity
+        user = db.session.get(User, int(session_user_id))
+        user.updateLastActive()
+        db.session.commit() #Commiting the changes
         auth_token = update_token(auth_token)
         return jsonify({'auth_token': str(auth_token), 'message': 'Post deleted successfully'}), 201
     else:
