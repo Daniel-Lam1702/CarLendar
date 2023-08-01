@@ -9,6 +9,7 @@ from application.post.model import Post
 from application.car.model import Car
 from application.model_extension import db
 from application.auth.auth import decode_auth_token, update_token
+from application.route_extension import update_user_activity
 
 post=Blueprint(
     'post', __name__, static_folder='static', url_prefix='/post'
@@ -37,8 +38,7 @@ def create_post():
     db.session.add(new_post)
     db.session.commit()
     #updating the time and date
-    user.updateLastActive()
-    db.session.commit()
+    update_user_activity(user_id)
     #updating the token
     auth_token = update_token(auth_token)
     #Verifying if the function returned a token
@@ -63,9 +63,7 @@ def get_posts_for_make():
     make = request.json.get('make')
     posts = Post.query.filter_by(forum = make).all()
     #updating the time of the user last activity
-    user = db.session.get(User, int(user_id))
-    user.updateLastActive()
-    db.session.commit() #Commiting the changes
+    update_user_activity(user_id)
     auth_token = update_token(auth_token)
     return jsonify({'auth_token': str(auth_token),'posts':[post.serialize() for post in posts]})
 
@@ -85,9 +83,7 @@ def get_posts_for_user():
     #Getting a list of posts made by the user
     posts = Post.query.filter_by(user_id=user_id).all()
     #updating the time of the user last activity
-    user = db.session.get(User, int(user_id))
-    user.updateLastActive()
-    db.session.commit() #Commiting the changes
+    update_user_activity(user_id)
     auth_token = update_token(auth_token)
     return jsonify({'auth_token': str(auth_token), 'posts':[post.serialize() for post in posts]})
 
@@ -111,9 +107,7 @@ def delete_post():
         db.session.delete(post)
         db.session.commit()
         ###Updating the time of the user activity
-        user = db.session.get(User, int(session_user_id))
-        user.updateLastActive()
-        db.session.commit() #Commiting the changes
+        update_user_activity(session_user_id)
         auth_token = update_token(auth_token)
         return jsonify({'auth_token': str(auth_token), 'message': 'Post deleted successfully'}), 201
     else:
