@@ -48,8 +48,8 @@ def create_post():
     except jwt.InvalidTokenError:
         return auth_token
 ### Getting a list of posts depending on the criteria ###
-@post.route('/get-posts-from-model', methods =['GET'])
-def get_posts_for_model():
+@post.route('/get-posts-from-make', methods =['GET'])
+def get_posts_for_make():
     #Retrieving token from the json to see if the user is still in session
     auth_token = request.headers.get('Authorization')
     if not auth_token:
@@ -60,8 +60,8 @@ def get_posts_for_model():
     if isinstance(user_id, str):
         return jsonify({'message': user_id}), 401
     #Retrieving the car from the user
-    model = request.json.get('model')
-    posts = Post.query.filter_by(forum = model).all() #I HAVE TO ADD MODEL TO THE TABLE OR FORUM
+    make = request.json.get('make')
+    posts = Post.query.filter_by(forum = make).all() #I HAVE TO ADD make TO THE TABLE OR FORUM
     return jsonify({'auth_token': str(auth_token),'posts':[post.serialize() for post in posts]})
 
 ### Getting a list of posts depending from the user id###
