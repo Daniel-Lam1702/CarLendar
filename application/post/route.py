@@ -9,6 +9,7 @@ from application.post.model import Post
 from application.car.model import Car
 from application.model_extension import db
 from application.auth.auth import decode_auth_token, update_token
+from application.route_extension import update_user_activity
 
 post=Blueprint(
     'post', __name__, static_folder='static', url_prefix='/post'
@@ -37,8 +38,7 @@ def create_post():
     db.session.add(new_post)
     db.session.commit()
     #updating the time and date
-    user.updateLastActive()
-    db.session.commit()
+    update_user_activity(user_id)
     #updating the token
     auth_token = update_token(auth_token)
     #Verifying if the function returned a token
@@ -48,8 +48,8 @@ def create_post():
     except jwt.InvalidTokenError:
         return auth_token
 ### Getting a list of posts depending on the criteria ###
-@post.route('/get-posts-from-model', methods =['GET'])
-def get_posts_for_model():
+@post.route('/get-posts-from-make', methods =['GET'])
+def get_posts_for_make():
     #Retrieving token from the json to see if the user is still in session
     auth_token = request.headers.get('Authorization')
     if not auth_token:
@@ -60,8 +60,11 @@ def get_posts_for_model():
     if isinstance(user_id, str):
         return jsonify({'message': user_id}), 401
     #Retrieving the car from the user
-    model = request.json.get('model')
-    posts = Post.query.filter_by(forum = model).all() #I HAVE TO ADD MODEL TO THE TABLE OR FORUM
+    make = request.json.get('make')
+    posts = Post.query.filter_by(forum = make).all()
+    #updating the time of the user last activity
+    update_user_activity(user_id)
+    auth_token = update_token(auth_token)
     return jsonify({'auth_token': str(auth_token),'posts':[post.serialize() for post in posts]})
 
 ### Getting a list of posts depending from the user id###
@@ -79,6 +82,8 @@ def get_posts_for_user():
         return jsonify({'message': user_id}), 401
     #Getting a list of posts made by the user
     posts = Post.query.filter_by(user_id=user_id).all()
+    #updating the time of the user last activity
+    update_user_activity(user_id)
     auth_token = update_token(auth_token)
     return jsonify({'auth_token': str(auth_token), 'posts':[post.serialize() for post in posts]})
 
@@ -101,6 +106,8 @@ def delete_post():
     if(session_user_id == post_user_id): #The user id is obtained after decoding the token. Verify if the owner is the one deleting the post
         db.session.delete(post)
         db.session.commit()
+        ###Updating the time of the user activity
+        update_user_activity(session_user_id)
         auth_token = update_token(auth_token)
         return jsonify({'auth_token': str(auth_token), 'message': 'Post deleted successfully'}), 201
     else:
