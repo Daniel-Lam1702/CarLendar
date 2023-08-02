@@ -53,7 +53,8 @@ def login():
         # Invalid username or password
         return jsonify({'message': 'Invalid credentials'}), 401
 
-
+###See profile###
+@user.route('/see-profile',)
 ###Deleting a user###
 @user.route('/delete', methods = ['DELETE'])
 def delete_post():
