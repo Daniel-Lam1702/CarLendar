@@ -6,4 +6,5 @@
 # What I have developed so far:
 #   - The REST api in python flask for the Car, User, and Post model. They will be more developed once I develop a demo frontend.
 #   - An internal database in mysql.
-#   - Found a way to make the front-end interact with the back-end
+#   - Found a way to make the front-end interact with the back-end. 
+# I have been testing the backend with postman and xampp. 
